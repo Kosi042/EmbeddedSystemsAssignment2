@@ -19,6 +19,8 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(cv_bridge REQUIRED)
 
 add_executable(imgage_processor_node src/imgage_processor_node.cpp)
 target_include_directories(imgage_processor_node PUBLIC
@@ -28,6 +30,8 @@ ament_target_dependencies(
   imgage_processor_node
   "rclcpp"
   "sensor_msgs"
+  "OpenCV"
+  "cv_bridge"
 )
 
 install(TARGETS imgage_processor_node
