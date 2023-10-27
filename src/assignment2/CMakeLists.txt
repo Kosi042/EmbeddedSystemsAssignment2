@@ -52,6 +52,21 @@ ament_target_dependencies(
 install(TARGETS subscriber
   DESTINATION lib/${PROJECT_NAME})
 
+add_executable(publisher src/publisher.cpp)
+target_include_directories(publisher PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(
+  publisher
+  "rclcpp"
+  "sensor_msgs"
+  "OpenCV"
+  "cv_bridge"
+)
+
+install(TARGETS publisher
+  DESTINATION lib/${PROJECT_NAME})
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
