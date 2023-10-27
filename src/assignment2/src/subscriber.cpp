@@ -24,6 +24,8 @@ class MinimalSubscriber : public rclcpp::Node
       cv::Mat img_small;
       resize(img, img_small, cv::Size(300, 200), cv::INTER_LINEAR);
       std::cout << "H: " << img_small.rows << "W: " << img_small.cols << std::endl;
+      auto storage = std::vector<uchar>(200 * 300 * 3); // or however many channels you have
+      auto mat     = cv::Mat_<uchar>(200, 300, CV_8UC3, storage.data());
     }
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
 };
