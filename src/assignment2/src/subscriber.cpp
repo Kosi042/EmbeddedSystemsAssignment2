@@ -13,7 +13,7 @@ class MinimalSubscriber : public rclcpp::Node
     : Node("minimal_subscriber")
     {
       subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
-      "topic", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
+      "image", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
     }
 
   private:
@@ -22,6 +22,8 @@ class MinimalSubscriber : public rclcpp::Node
       std::cout << "H: " << msg->height << "W: " << msg->width << std::endl;
       cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, msg->encoding);
 	  cv::Mat img = cv_ptr->image;
+      cv::Mat img_small;
+      resize(img, img_small, Size(300, 200), INTER_LINEAR);
     }
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
 };
