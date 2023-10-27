@@ -6,11 +6,14 @@
 #include <sensor_msgs/msg/image.hpp> //use image.hpp dont know if correct
 using std::placeholders::_1;
 
+#define FLATTENED_MINIMIYED_IMAGE 200 * 300 * 3
+
 class MinimalSubscriber : public rclcpp::Node
 {
   public:
     MinimalSubscriber()
-    : Node("minimal_subscriber")
+    : Node("img_subscriber")
+    , toFpga{0}
     {
       subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
       "/image_raw", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
@@ -24,10 +27,16 @@ class MinimalSubscriber : public rclcpp::Node
       cv::Mat img_small;
       resize(img, img_small, cv::Size(300, 200), cv::INTER_LINEAR);
       std::cout << "H: " << img_small.rows << "W: " << img_small.cols << std::endl;
-      auto storage = std::vector<uchar>(200 * 300 * 3); // or however many channels you have
+      auto storage = std::vector<uchar>(FLATTENED_MINIMIYED_IMAGE); // or however many channels you have
       auto mat     = cv::Mat_<uchar>(200, 300, CV_8UC3, storage.data());
+      auto tmp = vector<uchar>(img.begin<uchar>(), img.end<uchar>());
+      toFpga = &tmp[0];
+
+
     }
+
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
+    unsigned char toFpga[FLATTENED_MINIMIYED_IMAGE];
 };
 
 int main(int argc, char * argv[])
