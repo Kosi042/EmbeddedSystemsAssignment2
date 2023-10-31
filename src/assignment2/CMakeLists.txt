@@ -15,6 +15,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+add_subdirectory(src/drivers)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -32,6 +34,7 @@ ament_target_dependencies(
   "sensor_msgs"
   "OpenCV"
   "cv_bridge"
+  drivers
 )
 
 install(TARGETS imgage_processor_node
@@ -47,6 +50,7 @@ ament_target_dependencies(
   "sensor_msgs"
   "OpenCV"
   "cv_bridge"
+  drivers
 )
 
 install(TARGETS subscriber
@@ -62,6 +66,7 @@ ament_target_dependencies(
   "sensor_msgs"
   "OpenCV"
   "cv_bridge"
+  drivers
 )
 
 install(TARGETS publisher
