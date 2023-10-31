@@ -11,11 +11,9 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
-
-add_subdirectory(src/drivers)
+# if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+#   add_compile_options(-Wall -Wextra -Wpedantic)
+# endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -24,52 +22,30 @@ find_package(sensor_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 
-add_executable(imgage_processor_node src/imgage_processor_node.cpp)
-target_include_directories(imgage_processor_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(
-  imgage_processor_node
-  "rclcpp"
-  "sensor_msgs"
-  "OpenCV"
-  "cv_bridge"
-  drivers
+add_executable(subscriber
+src/subscriber.cpp
+src/drivers/ximge_processor.h
+src/drivers/ximge_processor_hw.h
+src/drivers/ximge_processor_linux.c
+src/drivers/ximge_processor.c
 )
 
-install(TARGETS imgage_processor_node
-  DESTINATION lib/${PROJECT_NAME})
-
-add_executable(subscriber src/subscriber.cpp)
 target_include_directories(subscriber PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
+target_link_libraries(
+	subscriber
+)
+
 ament_target_dependencies(
   subscriber
   "rclcpp"
   "sensor_msgs"
   "OpenCV"
   "cv_bridge"
-  drivers
 )
 
 install(TARGETS subscriber
-  DESTINATION lib/${PROJECT_NAME})
-
-add_executable(publisher src/publisher.cpp)
-target_include_directories(publisher PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(
-  publisher
-  "rclcpp"
-  "sensor_msgs"
-  "OpenCV"
-  "cv_bridge"
-  drivers
-)
-
-install(TARGETS publisher
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
