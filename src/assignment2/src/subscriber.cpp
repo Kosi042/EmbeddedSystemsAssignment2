@@ -98,10 +98,10 @@ private:
 		// Start the execution of the IP block.
 		XImge_processor_Start(&ip_inst);
 
-		// Wate until the data are processed.
+		// Wait until the data are processed.
 		while (!XImge_processor_IsDone(&ip_inst));
 
-		// Read the input from the IP.
+		// Read the output from the IP.
 		XImge_processor_Read_out_r_Words(ip_inst, 0, data, DATA_SIZE);
 
 		// Convert the read data to 32x24 cv::Mat Image using the function vectorToMat.
