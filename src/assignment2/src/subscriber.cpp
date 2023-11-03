@@ -25,7 +25,7 @@ public:
 		subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
 			"/image_raw", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
 
-		// Initialize the XImge_processor
+		// Initialize the XImge_processor the name is obtained by 'cat /sys/class/uio/uiox/name'
 		int status = XImge_processor_Initialize(&ip_inst, "imge_processor");
 		if (status != XST_SUCCESS) {
 			RCLCPP_ERROR(this->get_logger(), "Error: Could not initialize the IP core.");
@@ -94,6 +94,9 @@ private:
 
 		// Write data to the HLS generated IP.
 		XImge_processor_Write_in_r_Words(ip_inst, 0, data, flattenedStdVector.size());
+
+		// Start the execution of the IP block.
+		XImge_processor_Start(&ip_inst);
 
 		// Wate until the data are processed.
 		while (!XImge_processor_IsDone(&ip_inst));
