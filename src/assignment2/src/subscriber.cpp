@@ -9,14 +9,19 @@
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
-class MinimalSubscriber : public rclcpp::Node
+#define DATA_SIZE 16*16
+
+class MinimalSubscriber
+	: public rclcpp::Node
 {
 public:
 	MinimalSubscriber()
 		: Node("img_subscriber")
 	{
+		// Create a publisher that will publish the filtered image with frequency of 10Hz.
 		publisher_ = this->create_publisher<sensor_msgs::msg::Image>("/processed_image", 10);
 
+		// Create a subscriber to the topic created by the camera node.
 		subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
 			"/image_raw", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
 
@@ -28,11 +33,9 @@ public:
 		}
 
 		// Resize the output image to match your requirements
-		out_image_.height = 100;
-		out_image_.width = 150;
-		out_image_.encoding = "bgr8"; // Update with the actual encoding
-		out_image_.step = 150 * 3; // Assuming 3 channels
-		out_image_.data.resize(out_image_.height * out_image_.step);
+		out_image_.height = 24;
+		out_image_.width = 32;
+		out_image_.encoding = "mono8"; // Update with the actual encoding
 	}
 
 	~MinimalSubscriber()
@@ -41,6 +44,14 @@ public:
 	}
 
 private:
+	/**
+	 * @brief Reshapes one dimensional input vector to cv::Mat of size (rows, cols).
+	 *
+	 * @param inputVector Data to be reshaped.
+	 * @param rows Number of rows in the output matrix.
+	 * @param cols Number of columns in the output matrix.
+	 * @return The reshaped matrix containing data from inputVector.
+	 */
 	cv::Mat vectorToMat(const std::vector<uint32_t>& inputVector, int rows, int cols) {
 		cv::Mat image(rows, cols, CV_8UC1);
 
@@ -61,41 +72,55 @@ private:
 
 	void topic_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 	{
+		// convert ros Image to cv Image.
 		cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, msg->encoding);
 		cv::Mat img = cv_ptr->image;
 
+		// Resize the image from 640x420 to 32x24.
 		cv::Mat img_small;
 		resize(img, img_small, cv::Size(32, 24));
 
 		std::cout << "H: " << img_small.rows << " W: " << img_small.cols << std::endl;
 
+		// Convert the RGB picture to Grayscale picture.
 		cv::Mat grayscaleImage;
 		cv::cvtColor(img_small, grayscaleImage, cv::COLOR_BGR2GRAY);
-		// Perform processing on img_small
 
-		// For the sake of demonstration, let's assume you copy the processed image to out_image_
+		// Reshape data from 2D representation to 1D vector.
 		cv::Mat flattenedVector = grayscaleImage.reshape(1, 1);
 		std::vector<word_type> flattenedStdVector;
 		flattenedStdVector.assign(flattenedVector.data, flattenedVector.data + flattenedVector.total());
 		word_type *data = flattenedStdVector.data();
+
+		// Write data to the HLS generated IP.
 		XImge_processor_Write_in_r_Words(ip_inst, 0, data, flattenedStdVector.size());
 
-		while (!XImge_processor_IsDone(ip_inst));
+		// Wate until the data are processed.
+		while (!XImge_processor_IsDone(&ip_inst));
 
+		// Read the input from the IP.
 		XImge_processor_Read_out_r_Words(ip_inst, 0, data, DATA_SIZE);
 
+		// Convert the read data to 32x24 cv::Mat Image using the function vectorToMat.
 		auto filteredImg = vectorToMat(flattenedStdVector, 32, 24);
 
-		out_image_ = cv_brige::CvImage(std_msgs::Header(), "mono8", filteredImg)
+		// Create ros Image from cv Image.
+		out_image_ = cv_bridge::CvImage(std_msgs::Header(), "mono8", filteredImg)
 
 		// Publish the processed image
 		publisher_->publish(out_image_);
 	}
 
+	// Subscriber to the /image_raw topic that the camera node created.
 	rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
+
+	// Publisher publishing the filtered image on topic /processed_image.
 	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_;
+
+	// Output image that is sent to the publisher_.
 	sensor_msgs::msg::Image out_image_;
 
+	// XImge_processor that supports the communication with IP.
 	XImge_processor ip_inst;
 };
 
