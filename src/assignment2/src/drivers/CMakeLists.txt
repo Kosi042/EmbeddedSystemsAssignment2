@@ -3,6 +3,7 @@ set(SRC
 )
 
 set(HEADERS
+	ximge_processor.c
 	ximge_processor.h
 	ximge_processor_hw.h
 	ximge_processor_linux.c
