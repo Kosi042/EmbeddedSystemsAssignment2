@@ -24,6 +24,10 @@ find_package(cv_bridge REQUIRED)
 
 add_executable(subscriber
 src/subscriber.cpp
+src/drivers/ximge_processor.c
+src/drivers/ximge_processor.h
+src/drivers/ximge_processor_hw.h
+src/drivers/ximge_processor_linux.c
 )
 
 target_include_directories(subscriber PUBLIC
@@ -31,7 +35,6 @@ target_include_directories(subscriber PUBLIC
 	$<INSTALL_INTERFACE:include>)
 target_link_libraries(
 	subscriber
-	drivers
 )
 
 ament_target_dependencies(
